@@ -23,6 +23,7 @@ import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { useBorrow } from "@/hooks/useBorrow";
 import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
+import { useGetCurrentUserCscore } from "@/hooks/useGetCscore";
 
 export default function BorrowInterface() {
   const [collateralAmount, setCollateralAmount] = useState("1");
@@ -82,6 +83,13 @@ export default function BorrowInterface() {
   const { data, refetch: refetchLtv } = useCalculateDynamicLtv({
     userAddress: address,
   });
+
+  const { data: cScore } = useGetCurrentUserCscore() as {
+    data: { cScore: string };
+    isPending: boolean;
+  };
+
+  const normalizedCscore = parseFloat(normalize(cScore?.cScore || "0", 18));
 
   const { mutation: depositCollateral } = useAddCollateral();
   const { mutation: borrow } = useBorrow();
@@ -313,16 +321,13 @@ export default function BorrowInterface() {
 
           <motion.div variants={itemVariants}>
             <Card className="bg-gradient-to-br from-neutral-900 to-neutral-800 text-white p-6 shadow-lg">
-              <h2 className="text-lg font-semibold mb-4">Total Deposited</h2>
+              <h2 className="text-lg font-semibold mb-4">
+                Your credit score is
+              </h2>
               <div className="text-5xl font-bold mb-4">
-                {parseFloat(collateral).toFixed(2)} weth
+                {normalizedCscore.toFixed(4)}
               </div>
-              <p className="text-neutral-400">
-                Your total deposited value in USD
-              </p>
-              <p className="text-neutral-400">
-                {parseFloat(collateral).toFixed(2)} weth
-              </p>
+
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-2">Borrow Rate</h3>
                 <div className="text-3xl font-bold text-green-400">10% APR</div>

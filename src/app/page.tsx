@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useAccount, useWriteContract } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { motion } from "framer-motion";
 import { ArrowRight, Loader, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useAccount, useWriteContract } from "wagmi";
 
+import avsAbi from "@/abi/avs.json";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,23 +16,39 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import avsAbi from "@/abi/avs.json";
 import { useGetCurrentUserCscore } from "@/hooks/useGetCscore";
 import { normalize } from "@/lib/bignumber";
 
 export default function Home() {
   const { address, isConnected } = useAccount();
-  const { writeContract, error, isPending } = useWriteContract();
+  const { writeContract, error, isPending } = useWriteContract({});
   const [showError, setShowError] = useState(false);
+
+  const triggerCscoreRequest = async () => {
+    const fetchedData = await fetch("https://crediflex-avs.vercel.app/process");
+    const data = await fetchedData.json();
+    console.log(data);
+  };
+
+  useEffect(() => {
+    triggerCscoreRequest();
+  }, []);
 
   const handleCreditScoreRequest = () => {
     setShowError(false);
-    writeContract({
-      address: "0xc4327AD867E6e9a938e03815Ccdd4198ccE1023c",
-      abi: avsAbi,
-      functionName: "createNewTask",
-      args: [address],
-    });
+    writeContract(
+      {
+        address: "0xc4327AD867E6e9a938e03815Ccdd4198ccE1023c",
+        abi: avsAbi,
+        functionName: "createNewTask",
+        args: [address],
+      },
+      {
+        onSuccess: () => {
+          triggerCscoreRequest();
+        },
+      }
+    );
   };
 
   const { data: cScore, isPending: isCscorePending } =
