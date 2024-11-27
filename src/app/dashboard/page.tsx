@@ -109,7 +109,7 @@ export default function BorrowInterface() {
     userBorrowAssets
   );
 
-  const health = normalizeBN((positionData?.[6].result as string) ?? "0", 18);
+  // const health = normalizeBN((positionData?.[6].result as string) ?? "0", 18);
 
   const collateral = normalize(
     ((positionData?.[0] as PositionData)?.result?.[2] ?? "0") as string,
