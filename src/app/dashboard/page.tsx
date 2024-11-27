@@ -18,9 +18,10 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { useBorrow } from "@/hooks/useBorrow";
 import { useAddCollateral } from "@/hooks/useDeposit";
+import { useGetConversionPrice } from "@/hooks/useGetConversionPrice";
 import { useGetCurrentUserCscore } from "@/hooks/useGetCscore";
 import { useERC20TokenBalance } from "@/hooks/userERC20TokenBalance";
-import { normalize } from "@/lib/bignumber";
+import { normalize, normalizeBN } from "@/lib/bignumber";
 import Image from "next/image";
 import { useAccount, useReadContracts } from "wagmi";
 
@@ -71,7 +72,15 @@ export default function BorrowInterface() {
         address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
         functionName: "totalSupplyShares",
       },
+      {
+        abi: mainAbi,
+        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        functionName: "calculateHealth",
+      },
     ],
+    query: {
+      enabled: !!address,
+    },
   });
   const { data: cScore } = useGetCurrentUserCscore() as {
     data: { cScore: string };
@@ -79,9 +88,29 @@ export default function BorrowInterface() {
   };
   const { mutation: depositCollateral } = useAddCollateral();
   const { mutation: borrow } = useBorrow();
+  const { data: conversionPrice } = useGetConversionPrice({
+    amountIn: (positionData?.[0] as PositionData)?.result?.[2] ?? "0",
+    dataFeedIn: "0x122e4C08f927AD85534Fc19FD5f3BC607b00C731",
+    dataFeedOut: "0x27D0Dd86F00b59aD528f1D9B699847A588fbA2C7",
+  });
 
-  // const supplyShares = normalize((positions?.[0] as string) || "0", 18);
-  // const borrowShares = normalize((positions?.[1] as string) || "0", 18);
+  const userBorrowAssets = normalizeBN(
+    ((positionData?.[0] as PositionData)?.result?.[1] ?? "0") as string,
+    18
+  )
+    .multipliedBy(normalizeBN((positionData?.[2].result as string) ?? "0", 18))
+    .div(normalizeBN((positionData?.[3].result as string) ?? "0", 18));
+
+  const availableToBorrow = normalizeBN((conversionPrice as string) ?? "0", 18)
+    .multipliedBy(normalizeBN((positionData?.[1].result as string) ?? "0", 18))
+    .minus(userBorrowAssets);
+
+  const networth = normalizeBN((conversionPrice as string) ?? "0", 18).minus(
+    userBorrowAssets
+  );
+
+  const health = normalizeBN((positionData?.[6].result as string) ?? "0", 18);
+
   const collateral = normalize(
     ((positionData?.[0] as PositionData)?.result?.[2] ?? "0") as string,
     18
@@ -243,7 +272,10 @@ export default function BorrowInterface() {
                   />
                 </div>
                 <div className="text-sm text-neutral-500 text-right">
-                  Available to borrow: loading...
+                  Available to borrow: {availableToBorrow.toFixed(2)} usde
+                </div>
+                <div className="text-sm text-neutral-500 text-right">
+                  Your borrowed value: {userBorrowAssets.toFixed(2)} usde
                 </div>
                 <Button
                   disabled={borrow.isPending}
@@ -317,18 +349,27 @@ export default function BorrowInterface() {
           <motion.div variants={itemVariants}>
             <Card className="bg-gradient-to-br from-neutral-900 to-neutral-800 text-white p-6 shadow-lg">
               <h2 className="text-lg font-semibold mb-4">
-                Your credit score is
+                Your Networth in USD
               </h2>
               <div className="text-5xl font-bold mb-4">
+                $ {networth.toFixed(2)}
+              </div>
+              <h2 className="text-md font-semibold mb-4">
+                Your credit score is
+              </h2>
+              <div className="text-3xl font-bold mb-4">
                 {normalizedCscore.toFixed(4)}
               </div>
 
               <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-2">Borrow Rate</h3>
-                <div className="text-3xl font-bold text-green-400">10% APR</div>
+                <h3 className="text-sm font-semibold mb-2">Borrow Rate</h3>
+                <div className="text-2xl font-bold text-green-400">10% APR</div>
                 <p className="text-neutral-400 mt-2">
                   Current interest rate for borrowing
                 </p>
+                {/* <div className="text-sm text-neutral-500">
+                  Health: {health.toFixed(2)}
+                </div> */}
               </div>
             </Card>
           </motion.div>
