@@ -25,9 +25,7 @@ export default function Home() {
   const [showError, setShowError] = useState(false);
 
   const triggerCscoreRequest = async () => {
-    const fetchedData = await fetch("https://crediflex-avs.vercel.app/process");
-    const data = await fetchedData.json();
-    console.log(data);
+    await fetch("/api/processCreditScore");
   };
 
   useEffect(() => {
