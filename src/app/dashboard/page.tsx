@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ChevronDown, Info } from "lucide-react";
 import { useState } from "react";
 
+import mainAbi from "@/abi/main.json";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,23 +16,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useCalculateDynamicLtv } from "@/hooks/useCalculateDynamicLtv";
+import { useAddCollateral } from "@/hooks/useDeposit";
 import { useERC20TokenBalance } from "@/hooks/userERC20TokenBalance";
 import { normalize } from "@/lib/bignumber";
-import { useAccount } from "wagmi";
-
-// const collateralTokens = [
-//   {
-//     symbol: "wstETH",
-//     tokenAddress: 0x80207b9bacc73dadac1c8a03c6a7128350df5c9e,
-//   },
-// ];
-
-// const borrowTokens = [
-//   {
-//     symbol: "USDe",
-//     tokenAddress: 0x6acaccdace944619678054fe0ea03502ed557651,
-//   },
-// ];
+import { useAccount, useReadContract, useReadContracts } from "wagmi";
+import { useBorrow } from "@/hooks/useBorrow";
+import { toast } from "@/hooks/use-toast";
 
 export default function BorrowInterface() {
   const [collateralAmount, setCollateralAmount] = useState("1");
@@ -41,14 +31,58 @@ export default function BorrowInterface() {
     address,
     "0x80207b9bacc73dadac1c8a03c6a7128350df5c9e"
   );
-  const balanceBorrow = useERC20TokenBalance(
-    address,
-    "0x6acaccdace944619678054fe0ea03502ed557651"
-  );
+  // const balanceBorrow = useERC20TokenBalance(
+  //   address,
+  //   "0x6acaccdace944619678054fe0ea03502ed557651"
+  // );
 
-  const { data } = useCalculateDynamicLtv({
+  const { data: positions } = useReadContract({
+    abi: mainAbi,
+    address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+    functionName: "positions",
+    args: [address],
+    query: {
+      enabled: !!address,
+    },
+  }) as {
+    data: Array<string>;
+  };
+
+  const {} = useReadContracts({
+    contracts: [
+      {
+        abi: mainAbi,
+        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        functionName: "totalBorrowAssets",
+      },
+      {
+        abi: mainAbi,
+        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        functionName: "totalBorrowShares",
+      },
+      {
+        abi: mainAbi,
+        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        functionName: "totalSupplyAssets",
+      },
+      {
+        abi: mainAbi,
+        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        functionName: "totalSupplyShares",
+      },
+    ],
+  });
+
+  // const supplyShares = normalize((positions?.[0] as string) || "0", 18);
+  // const borrowShares = normalize((positions?.[1] as string) || "0", 18);
+  const collateral = normalize((positions?.[2] as string) || "0", 18);
+
+  const { data, refetch: refetchLtv } = useCalculateDynamicLtv({
     userAddress: address,
   });
+
+  const { mutation: depositCollateral } = useAddCollateral();
+  const { mutation: borrow } = useBorrow();
 
   const ltvValue = parseFloat(normalize((data as string) || "0", 18)) * 100;
 
@@ -122,8 +156,39 @@ export default function BorrowInterface() {
                   />
                 </div>
                 <div className="text-sm text-neutral-500 text-right">
-                  ${balanceCollateral.balance}
+                  Balance ${balanceCollateral.balance}
                 </div>
+                <Button
+                  disabled={depositCollateral.isPending}
+                  className="mt-4 w-full"
+                  variant="outline"
+                  onClick={() => {
+                    depositCollateral.mutate(
+                      {
+                        amount: collateralAmount,
+                      },
+                      {
+                        onSuccess() {
+                          toast({
+                            title: "Deposited successfully",
+                            description: "You have successfully deposited",
+                          });
+                          refetchLtv();
+                        },
+                        onError(error) {
+                          toast({
+                            title: "Error",
+                            description: error.message,
+                          });
+                        },
+                      }
+                    );
+                  }}
+                >
+                  {depositCollateral.isPending
+                    ? "Depositing..."
+                    : "Deposit Collateral"}
+                </Button>
               </Card>
 
               <Card className="p-6 bg-white/80 backdrop-blur-sm shadow-lg">
@@ -156,8 +221,37 @@ export default function BorrowInterface() {
                   />
                 </div>
                 <div className="text-sm text-neutral-500 text-right">
-                  ${balanceBorrow.balance}
+                  Available to borrow: loading...
                 </div>
+                <Button
+                  disabled={borrow.isPending}
+                  className="mt-4 w-full"
+                  variant="outline"
+                  onClick={() => {
+                    borrow.mutate(
+                      {
+                        amount: borrowAmount,
+                      },
+                      {
+                        onSuccess() {
+                          toast({
+                            title: "Borrowed successfully",
+                            description: "You have successfully borrowed",
+                          });
+                          refetchLtv();
+                        },
+                        onError(error) {
+                          toast({
+                            title: "Error",
+                            description: error.message,
+                          });
+                        },
+                      }
+                    );
+                  }}
+                >
+                  {borrow.isPending ? "Borrowing..." : "Borrow"}
+                </Button>
               </Card>
             </motion.div>
 
@@ -191,10 +285,10 @@ export default function BorrowInterface() {
                   />
 
                   <div className="flex justify-between text-sm text-neutral-600">
-                    <span>Conservative</span>
-                    <span>Moderate</span>
-                    <span>Aggressive</span>
                     <span>Liquidation</span>
+                    <span>Aggressive</span>
+                    <span>Moderate</span>
+                    <span>Conservative</span>
                   </div>
                 </div>
               </Card>
@@ -205,10 +299,13 @@ export default function BorrowInterface() {
             <Card className="bg-gradient-to-br from-neutral-900 to-neutral-800 text-white p-6 shadow-lg">
               <h2 className="text-lg font-semibold mb-4">Total Deposited</h2>
               <div className="text-5xl font-bold mb-4">
-                ${(parseFloat(collateralAmount) * 3688.83).toFixed(2)}
+                {parseFloat(collateral).toFixed(2)} weth
               </div>
               <p className="text-neutral-400">
                 Your total deposited value in USD
+              </p>
+              <p className="text-neutral-400">
+                {parseFloat(collateral).toFixed(2)} weth
               </p>
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-2">Borrow Rate</h3>
