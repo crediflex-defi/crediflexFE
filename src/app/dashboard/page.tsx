@@ -36,7 +36,7 @@ export default function BorrowInterface() {
   //   "0x6acaccdace944619678054fe0ea03502ed557651"
   // );
 
-  const { data: positions } = useReadContract({
+  const { data: positions, refetch: refetchPositions } = useReadContract({
     abi: mainAbi,
     address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
     functionName: "positions",
@@ -46,6 +46,7 @@ export default function BorrowInterface() {
     },
   }) as {
     data: Array<string>;
+    refetch: () => void;
   };
 
   const {} = useReadContracts({
@@ -174,6 +175,7 @@ export default function BorrowInterface() {
                             description: "You have successfully deposited",
                           });
                           refetchLtv();
+                          refetchPositions();
                         },
                         onError(error) {
                           toast({
