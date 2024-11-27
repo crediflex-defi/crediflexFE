@@ -1,9 +1,11 @@
-import { sepolia } from "viem/chains";
+import { arbitrumSepolia } from "viem/chains";
 import { createConfig, http } from "wagmi";
 
 export const wagmiConfig = createConfig({
-  chains: [sepolia],
+  chains: [arbitrumSepolia],
   transports: {
-    [sepolia.id]: http("https://ethereum-sepolia-rpc.publicnode.com"),
+    [arbitrumSepolia.id]: http(
+      "https://arbitrum-sepolia.blockpi.network/v1/rpc/public"
+    ),
   },
 });
