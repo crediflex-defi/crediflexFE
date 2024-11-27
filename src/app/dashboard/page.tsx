@@ -15,15 +15,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useCalculateDynamicLtv } from "@/hooks/useCalculateDynamicLtv";
+import { toast } from "@/hooks/use-toast";
+import { useBorrow } from "@/hooks/useBorrow";
 import { useAddCollateral } from "@/hooks/useDeposit";
+import { useGetCurrentUserCscore } from "@/hooks/useGetCscore";
 import { useERC20TokenBalance } from "@/hooks/userERC20TokenBalance";
 import { normalize } from "@/lib/bignumber";
-import { useAccount, useReadContract, useReadContracts } from "wagmi";
-import { useBorrow } from "@/hooks/useBorrow";
-import { toast } from "@/hooks/use-toast";
 import Image from "next/image";
-import { useGetCurrentUserCscore } from "@/hooks/useGetCscore";
+import { useAccount, useReadContracts } from "wagmi";
+
+// Define the expected type for positionData
+type PositionData = {
+  result: [string, string, string];
+};
 
 export default function BorrowInterface() {
   const [collateralAmount, setCollateralAmount] = useState("1");
@@ -33,26 +37,20 @@ export default function BorrowInterface() {
     address,
     "0x80207b9bacc73dadac1c8a03c6a7128350df5c9e"
   );
-  // const balanceBorrow = useERC20TokenBalance(
-  //   address,
-  //   "0x6acaccdace944619678054fe0ea03502ed557651"
-  // );
-
-  const { data: positions, refetch: refetchPositions } = useReadContract({
-    abi: mainAbi,
-    address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
-    functionName: "positions",
-    args: [address],
-    query: {
-      enabled: !!address,
-    },
-  }) as {
-    data: Array<string>;
-    refetch: () => void;
-  };
-
-  const {} = useReadContracts({
+  const { data: positionData, refetch: refetchPositions } = useReadContracts({
     contracts: [
+      {
+        abi: mainAbi,
+        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        functionName: "positions",
+        args: [address],
+      },
+      {
+        abi: mainAbi,
+        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        functionName: "calculateDynamicLTV",
+        args: [address],
+      },
       {
         abi: mainAbi,
         address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
@@ -75,26 +73,25 @@ export default function BorrowInterface() {
       },
     ],
   });
-
-  // const supplyShares = normalize((positions?.[0] as string) || "0", 18);
-  // const borrowShares = normalize((positions?.[1] as string) || "0", 18);
-  const collateral = normalize((positions?.[2] as string) || "0", 18);
-
-  const { data, refetch: refetchLtv } = useCalculateDynamicLtv({
-    userAddress: address,
-  });
-
   const { data: cScore } = useGetCurrentUserCscore() as {
     data: { cScore: string };
     isPending: boolean;
   };
-
-  const normalizedCscore = parseFloat(normalize(cScore?.cScore || "0", 18));
-
   const { mutation: depositCollateral } = useAddCollateral();
   const { mutation: borrow } = useBorrow();
 
-  const ltvValue = parseFloat(normalize((data as string) || "0", 18)) * 100;
+  // const supplyShares = normalize((positions?.[0] as string) || "0", 18);
+  // const borrowShares = normalize((positions?.[1] as string) || "0", 18);
+  const collateral = normalize(
+    ((positionData?.[0] as PositionData)?.result?.[2] ?? "0") as string,
+    18
+  );
+
+  const normalizedCscore = parseFloat(normalize(cScore?.cScore || "0", 18));
+
+  const ltvValue =
+    parseFloat(normalize((positionData?.[1]?.result ?? "0") as string, 18)) *
+    100;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -192,7 +189,6 @@ export default function BorrowInterface() {
                             title: "Deposited successfully",
                             description: "You have successfully deposited",
                           });
-                          refetchLtv();
                           refetchPositions();
                         },
                         onError(error) {
@@ -264,7 +260,6 @@ export default function BorrowInterface() {
                             title: "Borrowed successfully",
                             description: "You have successfully borrowed",
                           });
-                          refetchLtv();
                         },
                         onError(error) {
                           toast({
