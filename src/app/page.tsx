@@ -1,36 +1,46 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useAccount, useWriteContract } from "wagmi"
-import { ConnectButton } from "@rainbow-me/rainbowkit"
-import { motion } from "framer-motion"
-import { ArrowRight, Loader } from 'lucide-react'
+import { useState } from "react";
+import Link from "next/link";
+import { useAccount, useWriteContract } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { motion } from "framer-motion";
+import { ArrowRight, Loader, Loader2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import avsAbi from "@/abi/avs.json"
+} from "@/components/ui/card";
+import avsAbi from "@/abi/avs.json";
+import { useGetCurrentUserCscore } from "@/hooks/useGetCscore";
+import { normalize } from "@/lib/bignumber";
 
 export default function Home() {
-  const { address, isConnected } = useAccount()
-  const { writeContract, error, isPending } = useWriteContract()
-  const [showError, setShowError] = useState(false)
+  const { address, isConnected } = useAccount();
+  const { writeContract, error, isPending } = useWriteContract();
+  const [showError, setShowError] = useState(false);
 
   const handleCreditScoreRequest = () => {
-    setShowError(false)
+    setShowError(false);
     writeContract({
       address: "0xc4327AD867E6e9a938e03815Ccdd4198ccE1023c",
       abi: avsAbi,
       functionName: "createNewTask",
       args: [address],
-    })
-  }
+    });
+  };
+
+  const { data: cScore, isPending: isCscorePending } =
+    useGetCurrentUserCscore() as {
+      data: { cScore: string };
+      isPending: boolean;
+    };
+
+  const normalizedCscore = parseFloat(normalize(cScore?.cScore || "0", 18));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 font-sans">
@@ -41,8 +51,12 @@ export default function Home() {
           transition={{ duration: 0.5 }}
           className="mb-12 text-center"
         >
-          <h1 className="mb-4 text-4xl font-bold text-blue-800">Credit Score Portal</h1>
-          <p className="text-lg text-blue-600">Secure, Fast, and Reliable Credit Scoring</p>
+          <h1 className="mb-4 text-4xl font-bold text-blue-800">
+            Credit Score Portal
+          </h1>
+          <p className="text-lg text-blue-600">
+            Secure, Fast, and Reliable Credit Scoring
+          </p>
         </motion.div>
 
         <div className="grid gap-8 md:grid-cols-2">
@@ -53,26 +67,28 @@ export default function Home() {
           >
             <Card className="h-full bg-white/80 backdrop-blur-md shadow-lg">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold text-blue-800">Account Status</CardTitle>
+                <CardTitle className="text-2xl font-bold text-blue-800">
+                  Account Status
+                </CardTitle>
                 <CardDescription className="text-blue-600">
-                  {isConnected ? "Your wallet is connected" : "Connect your wallet to proceed"}
+                  {isConnected
+                    ? "Your wallet is connected"
+                    : "Connect your wallet to proceed"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center space-y-4">
-                {isConnected ? (
-                  <div className="text-center">
-                    <p className="mb-4 text-sm text-gray-600">Connected Address:</p>
-                    <code className="rounded bg-gray-100 px-2 py-1 text-sm">{address}</code>
-                  </div>
-                ) : (
+                {!isConnected ? (
                   <ConnectButton />
+                ) : (
+                  <div className="text-center">
+                    <p className="mb-4 text-sm text-gray-600">
+                      Connected Address:
+                    </p>
+                    <code className="rounded bg-gray-100 px-2 py-1 text-sm">
+                      {address}
+                    </code>
+                  </div>
                 )}
-                <Button asChild className="mt-4 w-full">
-                  <Link href="/dashboard">
-                    Go To Dashboard
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
               </CardContent>
             </Card>
           </motion.div>
@@ -84,28 +100,47 @@ export default function Home() {
           >
             <Card className="h-full bg-white/80 backdrop-blur-md shadow-lg">
               <CardHeader>
-                <CardTitle className="text-2xl font-bold text-blue-800">Credit Score Request</CardTitle>
+                <CardTitle className="text-2xl font-bold text-blue-800">
+                  Credit Score Request
+                </CardTitle>
                 <CardDescription className="text-blue-600">
                   Get your credit score with just one click
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <Button
-                    onClick={handleCreditScoreRequest}
-                    disabled={!isConnected || isPending}
-                    className="relative w-full overflow-hidden bg-blue-500 text-white transition-all duration-300 hover:bg-blue-600"
-                  >
-                    <span className="relative z-10 flex items-center justify-center">
-                      {isPending ? (
-                        <Loader className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <ArrowRight className="mr-2 h-4 w-4" />
-                      )}
-                      {isPending ? "Processing..." : "Request Credit Score"}
-                    </span>
-                    <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
-                  </Button>
+                  {isCscorePending ? (
+                    <div>
+                      <Loader2 />
+                    </div>
+                  ) : normalizedCscore > 0 ? (
+                    <div>
+                      <p>You already have a credit score: {normalizedCscore}</p>
+                      <p>Go to dashboard to start using it</p>
+                      <Button asChild className="mt-4 w-full">
+                        <Link href="/dashboard">
+                          Go To Dashboard
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={handleCreditScoreRequest}
+                      disabled={!isConnected || isPending}
+                      className="relative w-full overflow-hidden bg-blue-500 text-white transition-all duration-300 hover:bg-blue-600"
+                    >
+                      <span className="relative z-10 flex items-center justify-center">
+                        {isPending ? (
+                          <Loader className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <ArrowRight className="mr-2 h-4 w-4" />
+                        )}
+                        {isPending ? "Processing..." : "Request Credit Score"}
+                      </span>
+                      <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
+                    </Button>
+                  )}
                   {error && showError && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
@@ -122,6 +157,5 @@ export default function Home() {
         </div>
       </main>
     </div>
-  )
+  );
 }
-
