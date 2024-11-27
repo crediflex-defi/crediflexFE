@@ -22,6 +22,7 @@ import { normalize } from "@/lib/bignumber";
 import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { useBorrow } from "@/hooks/useBorrow";
 import { toast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 export default function BorrowInterface() {
   const [collateralAmount, setCollateralAmount] = useState("1");
@@ -145,7 +146,13 @@ export default function BorrowInterface() {
 
                 <div className="flex items-center justify-between mb-2">
                   <Button variant="outline" className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-blue-500" />
+                    <Image
+                      className="rounded-full"
+                      src="https://assets.coingecko.com/coins/images/37405/standard/tokens.png?1714372859"
+                      alt="weth"
+                      width={24}
+                      height={24}
+                    />
                     <span>weth</span>
                     <ChevronDown className="w-4 h-4" />
                   </Button>
@@ -157,7 +164,10 @@ export default function BorrowInterface() {
                   />
                 </div>
                 <div className="text-sm text-neutral-500 text-right">
-                  Balance ${balanceCollateral.balance}
+                  Balance {parseFloat(collateral).toFixed(2)} weth
+                </div>
+                <div className="text-sm text-neutral-500 text-right">
+                  Total Deposited Collateral {balanceCollateral.balance} weth
                 </div>
                 <Button
                   disabled={depositCollateral.isPending}
@@ -211,7 +221,13 @@ export default function BorrowInterface() {
                 </div>
                 <div className="flex items-center justify-between mb-2">
                   <Button variant="outline" className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-yellow-500" />
+                    <Image
+                      className="rounded-full"
+                      src="https://assets.coingecko.com/coins/images/33613/standard/USDE.png?1716355685"
+                      alt="usde"
+                      width={24}
+                      height={24}
+                    />
                     <span>usde</span>
                     <ChevronDown className="w-4 h-4" />
                   </Button>
@@ -272,7 +288,6 @@ export default function BorrowInterface() {
                     <div className="text-lg font-semibold text-neutral-900">
                       {ltvValue.toFixed(2)}%
                     </div>
-                    <div className="text-sm text-neutral-500">max. 150%</div>
                   </div>
                 </div>
 
@@ -282,7 +297,6 @@ export default function BorrowInterface() {
                     max={150}
                     step={0.01}
                     disabled
-                    // onValueChange={([value]) => setLtv(value)}
                     className="[&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:border-2 [&_[role=slider]]:border-primary"
                   />
 
@@ -311,9 +325,7 @@ export default function BorrowInterface() {
               </p>
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-2">Borrow Rate</h3>
-                <div className="text-3xl font-bold text-green-400">
-                  8.51% APR
-                </div>
+                <div className="text-3xl font-bold text-green-400">10% APR</div>
                 <p className="text-neutral-400 mt-2">
                   Current interest rate for borrowing
                 </p>
