@@ -42,39 +42,39 @@ export default function BorrowInterface() {
     contracts: [
       {
         abi: mainAbi,
-        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
         functionName: "positions",
         args: [address],
       },
       {
         abi: mainAbi,
-        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
         functionName: "calculateDynamicLTV",
         args: [address],
       },
       {
         abi: mainAbi,
-        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
         functionName: "totalBorrowAssets",
       },
       {
         abi: mainAbi,
-        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
         functionName: "totalBorrowShares",
       },
       {
         abi: mainAbi,
-        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
         functionName: "totalSupplyAssets",
       },
       {
         abi: mainAbi,
-        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
         functionName: "totalSupplyShares",
       },
       {
         abi: mainAbi,
-        address: "0x0EC0b333d125278BF90f4Aa7442B61B63363F956",
+        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
         functionName: "calculateHealth",
       },
     ],
@@ -198,10 +198,11 @@ export default function BorrowInterface() {
                   />
                 </div>
                 <div className="text-sm text-neutral-500 text-right">
-                  Balance {parseFloat(collateral).toFixed(2)} weth
-                </div>
-                <div className="text-sm text-neutral-500 text-right">
-                  Total Deposited Collateral {balanceCollateral.balance} weth
+                  <div className="text-sm text-neutral-500 text-right">
+                    Balance: {balanceCollateral.balance} weth
+                  </div>
+                  Total Deposited Collateral:{" "}
+                  {parseFloat(collateral).toFixed(2)} weth
                 </div>
                 <Button
                   disabled={depositCollateral.isPending}

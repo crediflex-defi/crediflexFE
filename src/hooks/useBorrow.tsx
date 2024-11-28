@@ -36,7 +36,7 @@ export const useBorrow = () => {
   const mutation = useMutation({
     mutationFn: async ({ amount }: { amount: string }) => {
       try {
-        const vaultAddress = "0x0EC0b333d125278BF90f4Aa7442B61B63363F956";
+        const vaultAddress = "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B";
         // Reset steps
         setSteps([
           { step: 1, status: "idle" },
