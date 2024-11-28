@@ -76,6 +76,7 @@ export default function BorrowInterface() {
         abi: mainAbi,
         address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
         functionName: "calculateHealth",
+        args: [address],
       },
     ],
     query: {
@@ -93,6 +94,7 @@ export default function BorrowInterface() {
     dataFeedIn: "0x122e4C08f927AD85534Fc19FD5f3BC607b00C731",
     dataFeedOut: "0x27D0Dd86F00b59aD528f1D9B699847A588fbA2C7",
   });
+  const health = normalizeBN((positionData?.[6].result as string) ?? "0", 18);
 
   const userBorrowAssets = normalizeBN(
     ((positionData?.[0] as PositionData)?.result?.[1] ?? "0") as string,
@@ -368,9 +370,9 @@ export default function BorrowInterface() {
                 <p className="text-neutral-400 mt-2">
                   Current interest rate for borrowing
                 </p>
-                {/* <div className="text-sm text-neutral-500">
+                <div className="text-sm text-neutral-500">
                   Health: {health.toFixed(2)}
-                </div> */}
+                </div>
               </div>
             </Card>
           </motion.div>
