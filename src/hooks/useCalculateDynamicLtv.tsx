@@ -9,7 +9,7 @@ export const useCalculateDynamicLtv = ({
 }) => {
   return useReadContract({
     abi: mainAbi,
-    address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
+    address: "0x4C086Bb080792308C74e5B804907e7D35779a56A",
     functionName: "calculateDynamicLTV",
     args: [userAddress],
     query: {

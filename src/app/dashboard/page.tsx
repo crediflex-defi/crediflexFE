@@ -44,39 +44,39 @@ export default function BorrowInterface() {
     contracts: [
       {
         abi: mainAbi,
-        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
+        address: "0x4C086Bb080792308C74e5B804907e7D35779a56A",
         functionName: "positions",
         args: [address],
       },
       {
         abi: mainAbi,
-        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
+        address: "0x4C086Bb080792308C74e5B804907e7D35779a56A",
         functionName: "calculateDynamicLTV",
         args: [address],
       },
       {
         abi: mainAbi,
-        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
+        address: "0x4C086Bb080792308C74e5B804907e7D35779a56A",
         functionName: "totalBorrowAssets",
       },
       {
         abi: mainAbi,
-        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
+        address: "0x4C086Bb080792308C74e5B804907e7D35779a56A",
         functionName: "totalBorrowShares",
       },
       {
         abi: mainAbi,
-        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
+        address: "0x4C086Bb080792308C74e5B804907e7D35779a56A",
         functionName: "totalSupplyAssets",
       },
       {
         abi: mainAbi,
-        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
+        address: "0x4C086Bb080792308C74e5B804907e7D35779a56A",
         functionName: "totalSupplyShares",
       },
       {
         abi: mainAbi,
-        address: "0xC4EC8E64157Ff9B5140966e6764F8B55319Ad08B",
+        address: "0x4C086Bb080792308C74e5B804907e7D35779a56A",
         functionName: "calculateHealth",
         args: [address],
       },
