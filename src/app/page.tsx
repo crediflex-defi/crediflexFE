@@ -2,7 +2,7 @@
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { motion } from "framer-motion";
-import { ArrowRight, Loader, Loader2 } from "lucide-react";
+import { ArrowRight, Loader } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAccount, useWriteContract } from "wagmi";
@@ -49,11 +49,10 @@ export default function Home() {
     );
   };
 
-  const { data: cScore, isPending: isCscorePending } =
-    useGetCurrentUserCscore() as {
-      data: { cScore: string };
-      isPending: boolean;
-    };
+  const { data: cScore } = useGetCurrentUserCscore() as {
+    data: { cScore: string };
+    isPending: boolean;
+  };
 
   const normalizedCscore = parseFloat(normalize(cScore?.cScore || "0", 18));
 
@@ -74,7 +73,7 @@ export default function Home() {
           </p>
         </motion.div>
 
-        <div className="grid gap-8 md:grid-cols-1">
+        <div className="grid gap-8 md:grid-cols-1 text-center">
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -90,60 +89,58 @@ export default function Home() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {isCscorePending ? (
-                    <div>
-                      <Loader2 />
-                    </div>
-                  ) : (
-                    <div>
-                      {!isConnected ? (
+                <div className="space-y-4 ">
+                  <div>
+                    {!isConnected ? (
+                      <div className="flex justify-center">
                         <ConnectButton />
-                      ) : (
-                        <div>
-                          {normalizedCscore > 0 ? (
-                            <p>
-                              You already have a credit score:{" "}
+                      </div>
+                    ) : (
+                      <div>
+                        {normalizedCscore > 0 ? (
+                          <p className="text-lg font-semibold">
+                            Your credit score:{" "}
+                            <h2 className="text-2xl font-bold">
                               {(normalizedCscore * 10).toFixed(2)}
-                            </p>
-                          ) : (
-                            <Button
-                              onClick={handleCreditScoreRequest}
-                              disabled={isPending}
-                              className="relative w-full overflow-hidden bg-blue-500 text-white transition-all duration-300 hover:bg-blue-600"
-                            >
-                              <span className="relative z-10 flex items-center justify-center">
-                                {isPending ? (
-                                  <Loader className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                  <ArrowRight className="mr-2 h-4 w-4" />
-                                )}
-                                {isPending
-                                  ? "Processing..."
-                                  : "Request Credit Score"}
-                              </span>
-                              <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
-                            </Button>
-                          )}
-                          <Button asChild className="mt-4 w-full">
-                            <Link href="/dashboard">
-                              Go To Dashboard
-                              <ArrowRight className="ml-2 h-4 w-4" />
-                            </Link>
+                            </h2>
+                          </p>
+                        ) : (
+                          <Button
+                            onClick={handleCreditScoreRequest}
+                            disabled={isPending}
+                            className="relative w-full overflow-hidden bg-blue-500 text-white transition-all duration-300 hover:bg-blue-600"
+                          >
+                            <span className="relative z-10 flex items-center justify-center">
+                              {isPending ? (
+                                <Loader className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <ArrowRight className="mr-2 h-4 w-4" />
+                              )}
+                              {isPending
+                                ? "Processing..."
+                                : "Request Credit Score"}
+                            </span>
+                            <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
                           </Button>
-                        </div>
-                      )}
-                      {error && showError && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="rounded bg-red-100 p-3 text-sm text-red-700"
-                        >
-                          Error: {error.message}
-                        </motion.div>
-                      )}
-                    </div>
-                  )}
+                        )}
+                        <Button asChild className="mt-4 w-full">
+                          <Link href="/dashboard">
+                            Go To Dashboard
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    )}
+                    {error && showError && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded bg-red-100 p-3 text-sm text-red-700"
+                      >
+                        Error: {error.message}
+                      </motion.div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

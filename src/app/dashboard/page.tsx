@@ -122,7 +122,6 @@ export default function BorrowInterface() {
   );
 
   const normalizedCscore = parseFloat(normalize(cScore?.cScore || "0", 18));
-  console.log("normalizedCscore", cScore.lastUpdate);
   const ltvValue =
     parseFloat(normalize((positionData?.[1]?.result ?? "0") as string, 18)) *
     100;
