@@ -1,7 +1,9 @@
 "use client";
 
+import avsAbi from "@/abi/avs.json";
 import { motion } from "framer-motion";
 import { ChevronDown, Info } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import mainAbi from "@/abi/main.json";
@@ -23,7 +25,7 @@ import { useGetCurrentUserCscore } from "@/hooks/useGetCscore";
 import { useERC20TokenBalance } from "@/hooks/userERC20TokenBalance";
 import { normalize, normalizeBN } from "@/lib/bignumber";
 import Image from "next/image";
-import { useAccount, useReadContracts } from "wagmi";
+import { useAccount, useReadContracts, useWriteContract } from "wagmi";
 
 // Define the expected type for positionData
 type PositionData = {
@@ -31,8 +33,8 @@ type PositionData = {
 };
 
 export default function BorrowInterface() {
-  const [collateralAmount, setCollateralAmount] = useState("1");
-  const [borrowAmount, setBorrowAmount] = useState("2000");
+  const [collateralAmount, setCollateralAmount] = useState("0");
+  const [borrowAmount, setBorrowAmount] = useState("0");
   const { address } = useAccount();
   const balanceCollateral = useERC20TokenBalance(
     address,
@@ -84,7 +86,10 @@ export default function BorrowInterface() {
     },
   });
   const { data: cScore } = useGetCurrentUserCscore() as {
-    data: { cScore: string };
+    data: {
+      cScore: string;
+      lastUpdate: string;
+    };
     isPending: boolean;
   };
   const { mutation: depositCollateral } = useAddCollateral();
@@ -111,15 +116,13 @@ export default function BorrowInterface() {
     userBorrowAssets
   );
 
-  // const health = normalizeBN((positionData?.[6].result as string) ?? "0", 18);
-
   const collateral = normalize(
     ((positionData?.[0] as PositionData)?.result?.[2] ?? "0") as string,
     18
   );
 
   const normalizedCscore = parseFloat(normalize(cScore?.cScore || "0", 18));
-
+  console.log("normalizedCscore", cScore.lastUpdate);
   const ltvValue =
     parseFloat(normalize((positionData?.[1]?.result ?? "0") as string, 18)) *
     100;
@@ -142,10 +145,43 @@ export default function BorrowInterface() {
     },
   };
 
+  const triggerCscoreRequest = async () => {
+    await fetch("/api/processCreditScore");
+  };
+
+  const { writeContract } = useWriteContract({});
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCreditScoreRequest = () => {
+    setLoading(true);
+    setError(null);
+
+    writeContract(
+      {
+        address: "0xc4327AD867E6e9a938e03815Ccdd4198ccE1023c",
+        abi: avsAbi,
+        functionName: "createNewTask",
+        args: [address],
+      },
+      {
+        onSuccess: () => {
+          triggerCscoreRequest();
+          setLoading(false);
+        },
+        onError: (err) => {
+          setLoading(false);
+          setError(err.message);
+        },
+      }
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#fdf8f6] to-[#f6e6e0] p-8">
       <motion.div
-        className="max-w-4xl mx-auto space-y-8"
+        className="max-w-6xl mx-auto space-y-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -156,6 +192,17 @@ export default function BorrowInterface() {
         >
           Borrow Dashboard
         </motion.h1>
+
+        <Button variant="outline" className="mb-4">
+          <Link href="/">Back to Home</Link>
+        </Button>
+
+        <Button onClick={handleCreditScoreRequest} className="mb-4">
+          Re-request Credit Score
+        </Button>
+
+        {loading && <p className="text-blue-500">Loading...</p>}
+        {error && <p className="text-red-500">Error: {error}</p>}
 
         <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
           <div className="space-y-6">
@@ -196,15 +243,15 @@ export default function BorrowInterface() {
                     type="number"
                     value={collateralAmount}
                     onChange={(e) => setCollateralAmount(e.target.value)}
-                    className="w-24 text-right"
+                    className="w-48 text-right"
                   />
                 </div>
                 <div className="text-sm text-neutral-500 text-right">
                   <div className="text-sm text-neutral-500 text-right">
                     Balance: {balanceCollateral.balance} weth
                   </div>
-                  Total Deposited Collateral:{" "}
-                  {parseFloat(collateral).toFixed(2)} weth
+                  Deposited :{parseFloat(collateral).toFixed(2)} weth (
+                  {normalizeBN(conversionPrice as string, 18).toFixed(4)} usd)
                 </div>
                 <Button
                   disabled={depositCollateral.isPending}
@@ -271,7 +318,7 @@ export default function BorrowInterface() {
                     type="number"
                     value={borrowAmount}
                     onChange={(e) => setBorrowAmount(e.target.value)}
-                    className="w-24 text-right"
+                    className="w-48 text-right"
                   />
                 </div>
                 <div className="text-sm text-neutral-500 text-right">
@@ -295,6 +342,7 @@ export default function BorrowInterface() {
                             title: "Borrowed successfully",
                             description: "You have successfully borrowed",
                           });
+                          refetchPositions();
                         },
                         onError(error) {
                           toast({
@@ -361,8 +409,14 @@ export default function BorrowInterface() {
                 Your credit score is
               </h2>
               <div className="text-3xl font-bold mb-4">
-                {normalizedCscore.toFixed(4)}
+                {(normalizedCscore * 10).toFixed(2)}
               </div>
+              <h2 className="text-md font-semibold mb-4">
+                Last updated:{" "}
+                {cScore?.lastUpdate
+                  ? new Date(Number(cScore.lastUpdate) * 1000).toLocaleString()
+                  : "N/A"}
+              </h2>
 
               <div className="mt-6">
                 <h3 className="text-sm font-semibold mb-2">Borrow Rate</h3>
@@ -370,8 +424,8 @@ export default function BorrowInterface() {
                 <p className="text-neutral-400 mt-2">
                   Current interest rate for borrowing
                 </p>
-                <div className="text-sm text-neutral-500">
-                  Health: {health.toFixed(2)}
+                <div className="text-lg ">
+                  Health: {userBorrowAssets.isZero() ? "0" : health.toFixed(2)}
                 </div>
               </div>
             </Card>
