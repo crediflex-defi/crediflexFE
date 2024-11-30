@@ -442,13 +442,13 @@ export default function BorrowInterface() {
                 <p
                   className={`
                   ${userBorrowAssets.isZero() ? "text-neutral-400" : ""}
-                  ${health.toNumber() < 50 ? "text-red-500" : ""}
+                  ${health.toNumber() < 1.5 ? "text-red-500" : ""}
                   ${
-                    health.toNumber() >= 50 && health.toNumber() <= 60
+                    health.toNumber() >= 1.5 && health.toNumber() <= 2
                       ? "text-yellow-500"
                       : ""
                   }
-                  ${health.toNumber() > 60 ? "text-green-500" : ""}
+                  ${health.toNumber() > 2 ? "text-green-500" : ""}
                 `}
                 >
                   {userBorrowAssets.isZero() ? "0" : health.toFixed(2)}
