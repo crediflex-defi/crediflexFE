@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Provider from "./Provider";
+import Link from "next/link";
+import Image from "next/image";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -33,7 +35,16 @@ export default function RootLayout({
       >
         <Provider>
           <nav className="flex justify-between w-full p-4">
-            <div className="flex-grow"></div>
+            <div className="flex-grow">
+              <Link href="/">
+                <Image
+                  src="/logo.jpeg"
+                  alt="Crediflex"
+                  width={100}
+                  height={100}
+                />
+              </Link>
+            </div>
             <div className="items-end">
               <ConnectButton />
             </div>

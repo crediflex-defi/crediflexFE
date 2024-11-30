@@ -65,12 +65,7 @@ export default function Home() {
           transition={{ duration: 0.5 }}
           className="mb-12 text-center"
         >
-          <h1 className="mb-4 text-4xl font-bold text-blue-800">
-            Credit Score Portal
-          </h1>
-          <p className="text-lg text-blue-600">
-            Secure, Fast, and Reliable Credit Scoring
-          </p>
+          <h1 className="mb-4 text-4xl font-bold text-blue-800">Crediflex</h1>
         </motion.div>
 
         <div className="grid gap-8 md:grid-cols-1 text-center">
@@ -123,14 +118,14 @@ export default function Home() {
                             <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
                           </Button>
                         )}
-                        <Button asChild className="mt-4 w-full">
-                          <Link href="/dashboard">
-                            Go To Dashboard
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Link>
-                        </Button>
                       </div>
                     )}
+                    <Button asChild className="mt-4 w-full">
+                      <Link href="/dashboard">
+                        Go To Dashboard
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
                     {error && showError && (
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}

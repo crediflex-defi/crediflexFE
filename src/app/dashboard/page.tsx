@@ -235,7 +235,7 @@ export default function BorrowInterface() {
                       width={24}
                       height={24}
                     />
-                    <span>weth</span>
+                    <span>WET</span>
                     <ChevronDown className="w-4 h-4" />
                   </Button>
                   <Input
@@ -246,11 +246,18 @@ export default function BorrowInterface() {
                   />
                 </div>
                 <div className="text-sm text-neutral-500 text-right">
-                  <div className="text-sm text-neutral-500 text-right">
-                    Balance: {balanceCollateral.balance} weth
+                  <div className="flex justify-between">
+                    <span>Balance:</span>
+                    <span>{balanceCollateral.balance} weth</span>
                   </div>
-                  Deposited :{parseFloat(collateral).toFixed(2)} weth (
-                  {normalizeBN(conversionPrice as string, 18).toFixed(4)} usd)
+                  <div className="flex justify-between">
+                    <span>Deposited:</span>
+                    <span>
+                      {parseFloat(collateral).toFixed(2)} weth (
+                      {normalizeBN(conversionPrice as string, 18).toFixed(4)}{" "}
+                      usd)
+                    </span>
+                  </div>
                 </div>
                 <Button
                   disabled={depositCollateral.isPending}
@@ -310,7 +317,7 @@ export default function BorrowInterface() {
                       width={24}
                       height={24}
                     />
-                    <span>usde</span>
+                    <span>USDe</span>
                     <ChevronDown className="w-4 h-4" />
                   </Button>
                   <Input
@@ -321,10 +328,14 @@ export default function BorrowInterface() {
                   />
                 </div>
                 <div className="text-sm text-neutral-500 text-right">
-                  Available to borrow: {availableToBorrow.toFixed(2)} usde
-                </div>
-                <div className="text-sm text-neutral-500 text-right">
-                  Your borrowed value: {userBorrowAssets.toFixed(2)} usde
+                  <div className="flex justify-between">
+                    <span>Available to borrow:</span>
+                    <span>{availableToBorrow.toFixed(2)} usde</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Your borrowed value:</span>
+                    <span>{userBorrowAssets.toFixed(2)} usde</span>
+                  </div>
                 </div>
                 <Button
                   disabled={borrow.isPending}
@@ -398,34 +409,50 @@ export default function BorrowInterface() {
 
           <motion.div variants={itemVariants}>
             <Card className="bg-gradient-to-br from-neutral-900 to-neutral-800 text-white p-6 shadow-lg">
-              <h2 className="text-lg font-semibold mb-4">
-                Your Networth in USD
-              </h2>
+              <h2 className="text-lg font-semibold mb-4">NET WORTH </h2>
               <div className="text-5xl font-bold mb-4">
                 $ {networth.toFixed(2)}
               </div>
-              <h2 className="text-md font-semibold mb-4">
-                Your credit score is
-              </h2>
-              <div className="text-3xl font-bold mb-4">
+              <h2 className="text-md font-semibold mb-4">Credit Score </h2>
+              <div
+                className={`text-3xl font-bold mb-4 ${
+                  normalizedCscore * 10 < 50
+                    ? "text-red-500"
+                    : normalizedCscore * 10 <= 60
+                    ? "text-yellow-500"
+                    : "text-green-500"
+                }`}
+              >
                 {(normalizedCscore * 10).toFixed(2)}
               </div>
-              <h2 className="text-md font-semibold mb-4">
-                Last updated:{" "}
+              <h2 className="text-md font-semibold mb-4">Last updated </h2>
+              <p className="text-sm ">
                 {cScore?.lastUpdate
                   ? new Date(Number(cScore.lastUpdate) * 1000).toLocaleString()
                   : "N/A"}
-              </h2>
+              </p>
 
               <div className="mt-6">
                 <h3 className="text-sm font-semibold mb-2">Borrow Rate</h3>
                 <div className="text-2xl font-bold text-green-400">10% APR</div>
-                <p className="text-neutral-400 mt-2">
+                <p className="text-neutral-400 ">
                   Current interest rate for borrowing
                 </p>
-                <div className="text-lg ">
-                  Health: {userBorrowAssets.isZero() ? "0" : health.toFixed(2)}
-                </div>
+                <div className="text-lg mt-2">Health</div>
+                <p
+                  className={`
+                  ${userBorrowAssets.isZero() ? "text-neutral-400" : ""}
+                  ${health.toNumber() < 50 ? "text-red-500" : ""}
+                  ${
+                    health.toNumber() >= 50 && health.toNumber() <= 60
+                      ? "text-yellow-500"
+                      : ""
+                  }
+                  ${health.toNumber() > 60 ? "text-green-500" : ""}
+                `}
+                >
+                  {userBorrowAssets.isZero() ? "0" : health.toFixed(2)}
+                </p>
               </div>
             </Card>
           </motion.div>
