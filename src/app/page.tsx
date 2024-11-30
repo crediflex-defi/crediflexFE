@@ -104,7 +104,7 @@ export default function Home() {
                           {normalizedCscore > 0 ? (
                             <p>
                               You already have a credit score:{" "}
-                              {normalizedCscore}
+                              {(normalizedCscore * 10).toFixed(2)}
                             </p>
                           ) : (
                             <Button
